@@ -1,312 +1,226 @@
--Sanguine Card Game
+Sanguine Card Game
+A strategic two-player card game featuring territory control mechanics, AI opponents, and event-driven GUI built with Java Swing and MVC architecture.
 
---Overview
-Sanguine is a two-player strategic card game played on a rectangular grid.
-Players compete to control rows by placing cards that influence surrounding cells with pawns.
-This game is inspired by Queen's blood.
+🎮 Game Overview
+Sanguine is a turn-based strategy game where two players compete to control rows on a rectangular grid by placing cards that influence surrounding cells with pawns. Inspired by Queen's Blood from Final Fantasy VII Rebirth, this implementation features a complete MVC architecture with support for human vs human, human vs AI, and AI vs AI gameplay.
+✨ Features
 
---Key Assumptions--
--The game requires a rectangular board with positive rows and odd columns (greater than 1)
--Each deck must contain enough cards to fill every cell on the board
--A deck can have at most two copies of any card
--Players have complete information about the board state
--Card influence is deterministic based on placement position
--The blue player's grid is horizontally mirrored compared to red's
+🎯 Strategic Gameplay: Place cards to spread influence and control territory
+🤖 Multiple AI Strategies: Three different AI opponents with varying difficulty
+🎨 GUI Interface: Clean Java Swing interface with visual feedback
+👥 Flexible Player Modes: Play against humans or AI in any combination
+📝 Text Mode: Command-line interface for testing and automation
+⚙️ Customizable: Configurable board sizes and custom card decks
+🎲 Deck Building: Create custom decks via configuration files
 
---Quick Start--
-Here is an example of how to create and run a game
 
-// Read deck configuration
-List deck = DeckReader.readDeck("docs" + File.separator + "deck.config");
-
-// Initialize a 3x5 game with same deck for both players, hand size 5
-SanguineModel model = new SanguineModel(3, 5, deck, deck, 5);
-
-// Create a text view
-SanguineTextView view = new SanguineTextView(model.getBoard());
-
-// Display initial board
-view.render();
-
-// Place a card (if legal)
-boolean success = model.placeCard(0, 0, 0); // card index 0, position (0,0)
-
-// Display updated board
-view.render();
-
-// Check game status
-if (model.isGameOver()) {
-PlayerColor winner = model.getWinner();
-System.out.println("Winner: " + winner);
-}
-
---Key Components--
-
---Model--
-The model represents the game state and enforces all game rules. It is the "brain" of the game that:
--Maintains the board, decks, hands, and turn order
--Validates all player actions (card placement, passing)
--Applies card influence to the board
--Calculates scores and determines winners
--Drives the game flow by managing turns and game-over conditions
-
-The model is driven by player actions
-
---View--
-The view renders the game state for visualization. It is a passive component that:
--Observes the model's board state
--Formats the game state as text output
--Is driven by the model's current state
-
---Controller (Not Yet  fully Implemented)--
-The controller will mediate between players and the model. It will:
-- Accept player input (human or AI)
-- Validate and translate input into model operations
-- Update the view after each action
-- DeckReader is in controller because it deals with FileReader and outsidefiles
-- **DeckReader**: Reads card configurations from files
-- Purpose: Converts external deck files into Card objects
-- Responsibilities: File parsing, validation, card creation
-- Key methods: `readDeck()`
-
---Key Subcomponents--
---model package (sanguine.model)
-**SanguineModel**: The main game coordinator
--Purpose: manages the complete game state and enforces all rules
--Responsible for turn management, move validation, and score calculation
--Some key methods are placeCard(), pass(), isGameOver(), getWinner()
-**Board**: Represents the game grid
-- Purpose: Container for all cells in a rectangular layout
-- Responsibilities: Cell access, dimension management, board initialization
-- Key methods: `getCell()`, `getRows()`, `getCols()`
-
-**Cell**: Represents a single space on the board
-- Purpose: Stores content (empty, pawns, or card) and ownership
-- Responsibilities: State management, content conversion, display formatting
-- Key methods: `placeCard()`, `initPawn()`, `addPawn()`, `convertPawns()`
-
-**Card**: Represents a playable card
-- Purpose: Defines card attributes and influence pattern
-- Responsibilities: Stores cost, value, name, and 5x5 influence grid
-- Key methods: `getInfluenceGrid()`, `getMirroredInfluence()`, `getCost()`, `getValue()`
+🚀 Quick Start
+Prerequisites
 
 
 
-**PlayerColor**: Enumeration for player identification
-- Purpose: Distinguishes between RED and BLUE players
-- Includes helper method `opposite()` for turn switching
+Running the Game
+bash# Clone the repository
+git clone https://github.com/giadapalazzo/Sanguine-Card-Game.git
+cd Sanguine-Card-Game
 
-**CellContent**: Enumeration for cell states
-- Purpose: Identifies what a cell contains (EMPTY, PAWNS, or CARD)
+# Build the project
+gradle build
 
---View Package-- (sanguine.view)
-**SanguineTextView**: Text-based board visualization
-- Purpose: Renders the board state as ASCII text
-- Responsibilities: Formatting board for console output
+# Run with default configuration (5 rows, 11 cols, human vs AI)
+java -jar build/libs/sanguine.jar 5 11 docs/red.config docs/blue.config human strategy2
 
-Source Organization
-f25-hw06-group-khaki-canyon-4465/
+# Run human vs human
+java -jar build/libs/sanguine.jar 5 11 docs/red.config docs/blue.config human human
+
+# Run AI vs AI (watch them battle!)
+java -jar build/libs/sanguine.jar 5 11 docs/red.config docs/blue.config strategy1 strategy3
+```
+
+### Command-Line Arguments
+```
+java -jar sanguine.jar [rows] [cols] [red_deck] [blue_deck] [red_player] [blue_player]
+```
+
+**Parameters:**
+- `rows`: Number of rows (must be positive)
+- `cols`: Number of columns (must be odd and > 1)
+- `red_deck`: Path to red player's deck configuration
+- `blue_deck`: Path to blue player's deck configuration
+- `red_player`: Player type - `human`, `strategy1`, `strategy2`, or `strategy3`
+- `blue_player`: Player type - `human`, `strategy1`, `strategy2`, or `strategy3`
+
+## 🎯 How to Play
+
+### Objective
+Control more rows than your opponent by placing cards that spread influence across the board.
+
+### Gameplay
+1. **Select a card** from your hand (click on it)
+2. **Select a cell** on the board (must have enough of your pawns to cover card cost)
+3. **Confirm move** (press ENTER) or **Pass turn** (press P)
+4. Card spreads influence to surrounding cells based on its influence grid
+5. Game ends when both players pass consecutively
+6. Winner is determined by total row scores
+
+### Card Mechanics
+- **Cost**: Number of pawns required to place (1-3)
+- **Value**: Points contributed to row score
+- **Influence Grid**: 5×5 pattern showing how card affects surrounding cells
+  - Adds pawns to empty cells
+  - Increases pawn count on owned cells (max 3)
+  - Converts opponent's pawns to your color
+
+### Scoring
+- Each row scores independently
+- Sum card values in each row for both players
+- Player with higher row score gains those points
+- Tied rows give no points to either player
+- Highest total score wins
+
+## 🏗️ Architecture
+
+### MVC Design Pattern
+```
+┌─────────────┐         ┌──────────────┐         ┌─────────────┐
+│   Model     │ ←───────│  Controller  │────────→│    View     │
+│  (Rules &   │ notifies│  (Mediator)  │ updates │ (Display)   │
+│   State)    │         │              │         │             │
+└─────────────┘         └──────────────┘         └─────────────┘
+       ↑                        ↑                        │
+       │                        │                        │
+       └────────────────────────┴────────────────────────┘
+              Observer Pattern (Listeners)
+```
+
+### Key Components
+
+**Model** (`sanguine.model`)
+- `SanguineModel`: Game state coordinator and rule enforcer
+- `Board`: Rectangular grid container
+- `Cell`: Individual board spaces (empty, pawns, or cards)
+- `Card`: Playable cards with cost, value, and influence patterns
+- Drives game flow through turn management
+
+**View** (`sanguine.view`)
+- `SanguineGameView`: Main GUI window
+- `BoardPanel`: Grid display with cells and scores
+- `HandPanel`: Card display with selection
+- `SanguineTextView`: Console-based visualization
+- Passive observer that reacts to model state
+
+**Controller** (`sanguine.controller`)
+- `SanguineController`: Mediates between model, view, and players
+- One controller per player for independent control
+- Validates moves and enforces turn-based gameplay
+- `DeckReader`: Parses deck configuration files
+
+**Players** (`sanguine.player`)
+- `HumanPlayer`: Waits for GUI input
+- `MachinePlayer`: Uses strategies to compute moves
+- Both publish same action events for controller
+
+**Strategies** (`sanguine.strategy`)
+- `FillFirstStrategy`: Plays first legal move
+- `MaximizeRowScoreStrategy`: Targets losing/tied rows
+- `MinimizeOpponentScoreStrategy`: Blocks opponent's strong rows
+
+## 🎲 AI Strategies
+
+### Strategy 1: Fill First
+- Simple greedy approach
+- Plays first legal card in first available position
+- Fast but not optimal
+
+### Strategy 2: Maximize Row Score
+- Targets rows where player is losing or tied
+- Calculates best card to flip row advantage
+- Balanced offense and defense
+
+### Strategy 3: Minimize Opponent Score
+- Defensive strategy
+- Blocks opponent's strongest rows
+- Forces opponent into suboptimal plays
+
+## 📦 Project Structure
+```
+sanguine/
 ├── src/
 │   └── sanguine/
-│       ├── Sanguine.java                    # Text-based game runner
-│       ├── SanguineGame.java                # GUI game launcher
+│       ├── Sanguine.java                 # Text-mode runner
+│       ├── SanguineGame.java             # GUI launcher
 │       ├── controller/
-│       │   ├── CardGameListener.java        # Interface for game event listeners
-│       │   ├── DeckReader.java              # Reads deck configuration files
-│       │   ├── SanguineController.java       
+│       │   ├── SanguineController.java   # Player controller
+│       │   ├── DeckReader.java           # Deck file parser
+│       │   └── *Listener.java            # Event interfaces
 │       ├── model/
-│       │   ├── Board.java                   # Game board representation
-│       │   ├── Card.java                    # Card with cost, value, and influence
-│       │   ├── Cell.java                    # Individual board cell
-│       │   ├── CellContent.java             # Enum for cell contents
-│       │   ├── PlayerColor.java             # RED or BLUE player
-│       │   ├── ReadOnlySanguineModel.java   # Read-only model interface
-│       │   ├── MutableSanguineModel.java    # Mutable model interface
-│       │   └── SanguineModel.java           # Main game model implementation
+│       │   ├── SanguineModel.java        # Main game model
+│       │   ├── Board.java                # Grid representation
+│       │   ├── Cell.java                 # Board cell
+│       │   └── Card.java                 # Card definition
+│       ├── player/
+│       │   ├── HumanPlayer.java          # Human player
+│       │   └── MachinePlayer.java        # AI player
 │       ├── strategy/
-│       │   ├── Move.java                    # Represents a game move
-│       │   ├── SanguineStrategy.java        # Strategy interface
-│       │   ├── FillFirstStrategy.java       # First legal move strategy
-│       │   └── MaximizeRowScoreStrategy.java # Row score maximization strategy
+│       │   ├── SanguineStrategy.java     # Strategy interface
+│       │   └── *Strategy.java            # AI implementations
 │       └── view/
-│           ├── SanguineView.java            # View interface
-│           ├── SanguineTextView.java        # Text-based view
-│           ├── SanguineGameView.java        # Main GUI view
-│           ├── BoardPanel.java              # Board display panel
-│           └── HandPanel.java               # Hand display panel
-├── test/
-│   └── sanguine/
-│       ├── strategy/
-│       │   ├── MockSanguineModel.java       # Mock model for testing
-│       │   ├── StrategyMockTest.java        # Mock-based strategy test
-│       ├── MockCard.java                    # Helper for creating test cards
-│       ├── MockModel.java                   # Helper for creating test models
-│       ├── CellTests.java                   # Tests for Cell class
-│       ├── LegalMoveTests.java              # Tests for move validation
-│       └── InfluenceTests.java              # Tests for card influence
+│           ├── SanguineGameView.java     # Main GUI
+│           ├── BoardPanel.java           # Board display
+│           └── HandPanel.java            # Hand display
 ├── docs/
-│   └── deck.config                          # Deck configuration file
-├── images/
-│   ├── screenshot-1-
-│   ├── screenshot-2
-│   ├── screenshot-3-
-│   └── screenshot-4
-├── strategy-transcript-first.txt            # FillFirst strategy transcript
-├── strategy-transcript-score.txt            # MaximizeRowScore strategy transcript
-└── build.gradle
+│   ├── red.config                        # Red player deck
+│   └── blue.config                       # Blue player deck
+└── test/                                 # Comprehensive test suite
+🧪 Testing
+Comprehensive JUnit test suite covering:
 
-====Changes For Part 2=======
-Model Refactoring
--The model interface was split into the ReadOnluSanguineModel and MutableSanguineModel
-- this ensures that the view can only be observed by the game state, while mutation methods are restricted to the controller
+✅ Card influence mechanics
+✅ Move validation logic
+✅ Score calculation
+✅ Strategy behavior
+✅ Controller turn enforcement
+✅ View event publishing
+✅ Player action handling
 
-GUI implementation
--the gui implementation uses java swing with MVC architechture
-SanguineGameView
-- Main window that hold all panels
-- manages keyboard inputs
-- tracks selected card and cell
-HandPanel
-- Displays player's hand horizontally
-- shows card name, cost, value, and influence grid
-- handles mouse clicks for card selection
-Board Panel
-- Displays the game board in a grid layout
-- shows cells with pawns or cards
-- displays row scores
-- handles mouse clicks for cell selection
-User Interaction
-- Select a card
-- Select a cell
-- press enter to confirm move 
-- press P key to pass turn 
-Uses controller to aid switching between turns of red player and blue player
+bash# Run all tests
+gradle test
+🎓 Design Highlights
+Observer Pattern
 
-Strategy Implementation
-- Added Strategy interface that analyze the game state and return Move 
-  an object containing card index, target row, target column.
-- FirstFillStrategy
-- Chooses the first legal card and position by checking cards left to right 
-- then cells top to bottom and left to right
-- MaximalizeRowScoreStrategy
-- Visit rows from top to bottom. For each row where the current player is losing
-- or tied, try to find a card that would make their row score greater than the opponent's
-- For each candidate move the calculation is 
-- newScore= currentRowScore + cardValue
-- Move is valid if newScore > opponentRowScore
+Model publishes turn changes and game-over events
+Views observe model state without direct coupling
+Controllers coordinate between components
 
-Testing
--Added some more tests for my model to ensure that everything is working
-CellTests.java
-LegalMove.java
-InfluenceTests.java
-Startegy Tests with Strategy Mock
+Strategy Pattern
 
-## Changes For Part 3
-### Controller Implementation
-- Created SanguineController that mediates between model, view, and player
-- Each player has their own dedicated controller
-- Controller enforces turn-based gameplay and validates all moves
-- Implements three listener interfaces:
-  - CardGameListener: Responds to view events (clicks, key presses)
-  - PlayerActionListener: Responds to player actions (machine or human)
-  - ModelStatusListener: Responds to model events (turn changes, game over)
+AI behaviors encapsulated as interchangeable strategies
+Easy to add new AI opponents
+Clean separation from game logic
 
-### Asynchronous Event Handling
-- GUI events (mouse clicks, key presses) can arrive at any time
-- Model notifications (turn changes) trigger controller responses
-- Controllers ensure synchronous gameplay despite asynchronous input
-- Turn enforcement prevents players from acting when it's not their turn
+Event-Driven Architecture
 
-### Player Architecture
-- Split player responsibilities into separate Player implementations
-- **HumanPlayer**: Passive player that waits for view input
-  - Stores player color and listeners
-  - View publishes events on behalf of human player
-- **MachinePlayer**: Active player that uses strategies
-  - Implements ModelStatusListener to respond to turn changes
-  - Automatically computes and publishes moves when it's their turn
-  - Handles empty hand gracefully by passing
+Asynchronous GUI events (clicks, keypresses)
+Synchronous game rules (turn-based)
+Controllers bridge the gap elegantly
 
-### Listener Interfaces
-**ModelStatusListener**
-- Allows controllers and players to observe model state changes
-- Methods: `onTurnStart(PlayerColor)`, `onGameOver(PlayerColor, int)`
-- Model notifies all registered listeners on turn changes and game end
+Multi-Player Support
 
-**PlayerActionListener**
-- Allows controllers to receive player actions
-- Methods: `cardSelected()`, `cellSelected()`, `confirmMove()`, `passTurn()`
-- Both human (via view) and machine players publish these events
+Each player has dedicated controller and view
+True simultaneous multi-player (two windows)
+Any combination of human/AI players
 
-**CardGameListener**
-- Allows controllers to receive view events
-- Methods: `onCardSelected()`, `onCellSelected()`, `onConfirmMove()`, `onPass()`
-- View publishes these events when user interacts with GUI
+📚 What I Learned
 
-### Game Flow
-1. **Initialization**: Controllers register as listeners to model, view, and player
-2. **Start Game**: Model calls `startGame()`, notifying first player's turn
-3. **Turn Notification**: Controllers receive `onTurnStart()` and update view titles
-4. **Player Action**:
-  - Human: User clicks card/cell, presses ENTER → view publishes events
-  - Machine: Strategy computes move → player publishes events
-5. **Controller Validation**: Checks if selections are valid and it's player's turn
-6. **Model Update**: Controller calls `placeCard()` or `pass()` on model
-7. **Next Turn**: Model switches players and notifies listeners
-8. **Game Over**: Model notifies all listeners with winner and score
+Advanced MVC: Coordinating multiple views and controllers
+Observer Pattern: Event-driven programming with listeners
+Strategy Pattern: Pluggable AI behaviors
+Asynchronous Design: Reconciling async events with sync gameplay
+Java Swing: Building responsive GUIs
+File I/O: Parsing custom configuration formats
+Testing: Mock objects and isolation testing
 
-### Selection Management
-- Views track selected card and cell indices
-- Controllers coordinate between view selections and model state
-- Visual feedback shows selected items with highlights
-- Selections cleared after successful move or pass
 
-### Error Handling
-- Controllers catch IllegalArgumentException from invalid moves
-- Error messages displayed via `showMessage()` dialog
-- Invalid moves don't crash the game or change state
-- User can correct mistakes and try again
-
-### Command-Line Configuration
-- Main method accepts 6 arguments: rows, cols, red_deck, blue_deck, red_player, blue_player
-- Player types: "human", "strategy1", "strategy2", "strategy3"
-- Example: `java -jar sanguine.jar 5 11 docs/red.config docs/blue.config human strategy2`
-- Graceful error handling for invalid arguments
-
-### Testing Additions
-**Controller Tests**
-- Tests for turn enforcement
-- Tests for selection validation
-- Tests for move confirmation logic
-- Tests for all listener method implementations
-
-**Player Tests**
-- HumanPlayer tests for color and listener management
-- MachinePlayer tests for automatic move generation
-- Tests for handling empty hands and null moves
-
-**Strategy Tests**
-- MinimizeOpponentScoreStrategy tests
-- FillFirstStrategy tests
-- Tests with mock models for controlled scenarios
-
-**Mock Classes**
-- MockView: Tracks view method calls for testing
-- MockSanguineModel: Minimal model implementation for isolated tests
-- MockPlayerActionListener: Verifies player action events
-
-### Design Improvements
-- Clear separation of concerns: Model (rules), View (display), Controller (coordination)
-- Flexible player architecture supports any mix of human/AI players
-- Strategy pattern allows easy addition of new AI behaviors
-- Observer pattern enables loose coupling between components
-- Each player has isolated view and controller for true multi-player experience
-
-### Key Design Decisions
-1. **One controller per player**: Enables independent player actions and clean separation
-2. **Separate listener interfaces**: Clear contracts for different event types
-3. **Model drives game flow**: Controllers react to model state changes
-4. **View is passive**: Only publishes events, doesn't directly modify model
-5. **Players publish events**: Both human and machine use same event mechanism
-6. **startGame() method**: Ensures all listeners registered before first turn notification
+👤 Author
+Giada Palazzo & Abhinav Talvidar
+Computer Science & Philosophy @ Northeastern University
